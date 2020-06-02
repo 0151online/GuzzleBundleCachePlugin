@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
+use Prophecy\Prophecy\ObjectProphecy;
 
 class InvalidateRequestEventTest extends TestCase
 {
@@ -14,15 +15,14 @@ class InvalidateRequestEventTest extends TestCase
     {
         $baseUri = Psr7\uri_for('http://api.domain.tld');
 
-        /** @var Client|\PHPUnit_Framework_MockObject_MockObject $client */
-        $client = $this->getMockBuilder(Client::class)->getMock();
-        $client->expects($this->once())
-            ->method('getConfig')
-            ->with('base_uri')
-            ->willReturn($baseUri);
+        /** @var Client|ObjectProphecy $client */
+        $client = $this->prophesize(Client::class);
 
-        $invalidateRequestEvent = new InvalidateRequestEvent($client, 'GET', '/ping');
-        $this->assertEquals($client, $invalidateRequestEvent->getClient());
+        $client->getConfig('base_uri')->willReturn($baseUri);
+        $client->getConfig('base_uri')->shouldBeCalledOnce();
+
+        $invalidateRequestEvent = new InvalidateRequestEvent($client->reveal(), 'GET', '/ping');
+        $this->assertEquals($client->reveal(), $invalidateRequestEvent->getClient());
         $this->assertEquals('GET', $invalidateRequestEvent->getMethod());
         $this->assertEquals('/ping', $invalidateRequestEvent->getUri());
 
@@ -34,15 +34,14 @@ class InvalidateRequestEventTest extends TestCase
 
     public function testCaseWhenClientWithoutBaseUri()
     {
-        /** @var Client|\PHPUnit_Framework_MockObject_MockObject $client */
-        $client = $this->getMockBuilder(Client::class)->getMock();
-        $client->expects($this->once())
-            ->method('getConfig')
-            ->with('base_uri')
-            ->willReturn(null);
+        /** @var Client|ObjectProphecy $client */
+        $client = $this->prophesize(Client::class);
 
-        $invalidateRequestEvent = new InvalidateRequestEvent($client, 'GET', 'http://api.domain.tld/ping');
-        $this->assertEquals($client, $invalidateRequestEvent->getClient());
+        $client->getConfig('base_uri')->willReturn(null);
+        $client->getConfig('base_uri')->shouldBeCalledOnce();
+
+        $invalidateRequestEvent = new InvalidateRequestEvent($client->reveal(), 'GET', 'http://api.domain.tld/ping');
+        $this->assertEquals($client->reveal(), $invalidateRequestEvent->getClient());
         $this->assertEquals('GET', $invalidateRequestEvent->getMethod());
         $this->assertEquals('http://api.domain.tld/ping', $invalidateRequestEvent->getUri());
 

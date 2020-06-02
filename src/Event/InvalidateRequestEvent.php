@@ -3,10 +3,10 @@
 namespace Gregurco\Bundle\GuzzleBundleCachePlugin\Event;
 
 use Psr\Http\Message\UriInterface;
-use Symfony\Component\EventDispatcher\Event;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class InvalidateRequestEvent extends Event
 {
